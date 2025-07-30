@@ -74,19 +74,24 @@
 
 ## 基本的な通信フロー
 
-```
-1. クライアント → サーバ: EHLO/HELO
-2. サーバ → クライアント: 250 OK + 機能一覧
-3. クライアント → サーバ: MAIL FROM
-4. サーバ → クライアント: 250 OK
-5. クライアント → サーバ: RCPT TO (必要に応じて複数回)
-6. サーバ → クライアント: 250 OK
-7. クライアント → サーバ: DATA
-8. サーバ → クライアント: 354 Start mail input
-9. クライアント → サーバ: メールヘッダ + 本文 + "."
-10. サーバ → クライアント: 250 OK
-11. クライアント → サーバ: QUIT
-12. サーバ → クライアント: 221 Bye
+```mermaid
+sequenceDiagram
+    participant C as SMTPクライアント
+    participant S as SMTPサーバ
+    
+    C->>S: EHLO/HELO
+    S->>C: 250 OK + 機能一覧
+    C->>S: MAIL FROM:<sender>
+    S->>C: 250 OK
+    C->>S: RCPT TO:<recipient>
+    S->>C: 250 OK
+    Note over C,S: 複数の受信者がいる場合、<br/>RCPT TOを繰り返し実行
+    C->>S: DATA
+    S->>C: 354 Start mail input
+    C->>S: メールヘッダ + 本文 + "."
+    S->>C: 250 OK
+    C->>S: QUIT
+    S->>C: 221 Bye
 ```
 
 ## クライアント実装要件
