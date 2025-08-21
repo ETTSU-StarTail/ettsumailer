@@ -1,0 +1,411 @@
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  --color-bg: #1a1a1a;
+  --color-bg-secondary: #2a2a2a;
+  --color-border: #444;
+  --color-text: #eaeaea;
+  --color-text-secondary: #999;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden; /* Prevents scrollbars on the body */
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: 240px 3fr 5fr; /* Sidebar, Email List, Email Content */
+  height: 100vh;
+  width: 100vw;
+}
+
+.sidebar {
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.email-list-view {
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+}
+
+.email-content-view {
+  padding: 2rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.email-content-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: 1.2rem;
+}
+
+.sidebar-header {
+  margin-bottom: 1.5rem;
+}
+
+.compose-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compose-button:hover {
+  background-color: #4338ca;
+}
+
+.folder-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.folder-item {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.folder-item.active {
+  background-color: rgba(79, 70, 229, 0.2);
+  color: #a5b4fc;
+}
+
+.folder-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-footer {
+  margin-top: 1rem;
+}
+
+.settings-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.email-list-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.email-list-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.toolbar {
+  margin-top: 1rem;
+}
+
+.toolbar input[type="search"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.email-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+.email-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.email-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.email-item.active {
+  background-color: #4f46e5;
+}
+
+.email-item.unread .email-item-sender,
+.email-item.unread .email-item-subject {
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.email-item-details {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-item-sender {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.email-item-subject {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.email-item-meta {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.email-item-date {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* Settings Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.modal-overlay.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.modal-content {
+  background-color: var(--color-bg-secondary);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  border: 1px solid var(--color-border);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+#settings-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+#settings-form input[type="text"],
+#settings-form input[type="number"] {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+#settings-form small {
+  display: block;
+  margin-top: -0.75rem;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.form-actions .save-button {
+  background-color: #4f46e5;
+  color: white;
+}
+.form-actions .save-button:hover {
+  background-color: #4338ca;
+}
+
+.form-actions .cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.form-actions .cancel-button:hover {
+  background-color: var(--color-border);
+}
+
+/* Config Prompt */
+.config-prompt {
+  text-align: center;
+  padding: 2rem;
+  background-color: rgba(79, 70, 229, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(79, 70, 229, 0.3);
+}
+
+.config-prompt p {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+#configure-now-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background-color: #4f46e5;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+#configure-now-button:hover {
+  background-color: #4338ca;
+}
+
+.email-item-placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: default;
+}
+
+.email-item-placeholder:hover {
+    background-color: transparent;
+}
+
+.email-item-placeholder.error {
+  color: #f87171; /* A reddish color for errors */
+}
+
+/* Email Content View */
+.email-header {
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 1.5rem;
+}
+
+.email-subject {
+  font-size: 1.8rem;
+  margin: 0 0 1rem 0;
+  line-height: 1.3;
+  color: var(--color-text);
+}
+
+.email-meta-details {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.email-meta-details strong {
+  color: var(--color-text);
+  font-weight: 500;
+  margin-right: 0.5em;
+}
+
+.email-body {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.email-body pre {
+  white-space: pre-wrap; /* Allow text to wrap */
+  word-wrap: break-word;
+  font-family: var(--font-family);
+  margin: 0;
+}
