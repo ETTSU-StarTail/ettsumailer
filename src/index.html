@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles.css" />
+    <title>ettsumailer</title>
+  </head>
+  <body>
+    <div id="app">
+      <div class="app-container">
+        <nav class="sidebar">
+          <div class="sidebar-header">
+            <button class="compose-button">Compose</button>
+          </div>
+          <ul class="folder-list">
+            <li class="folder-item active" data-folder="inbox">Inbox</li>
+            <li class="folder-item" data-folder="sent">Sent</li>
+            <li class="folder-item" data-folder="drafts">Drafts</li>
+            <li class="folder-item" data-folder="trash">Trash</li>
+          </ul>
+          <div class="sidebar-footer">
+            <button class="settings-button">Settings</button>
+          </div>
+        </nav>
+        <main class="email-list-view">
+          <div class="email-list-header">
+            <h2>Inbox</h2>
+            <div class="toolbar">
+              <input type="search" placeholder="Search..." />
+            </div>
+          </div>
+          <ul class="email-list">
+            <!-- Email items will be dynamically inserted here -->
+            <li class="email-item unread">
+              <div class="email-item-details">
+                <div class="email-item-sender">John Doe</div>
+                <div class="email-item-subject">Meeting Tomorrow</div>
+              </div>
+              <div class="email-item-meta">
+                <div class="email-item-date">10:45 AM</div>
+              </div>
+            </li>
+            <li class="email-item">
+              <div class="email-item-details">
+                <div class="email-item-sender">Jane Smith</div>
+                <div class="email-item-subject">Re: Project Update</div>
+              </div>
+              <div class="email-item-meta">
+                <div class="email-item-date">Yesterday</div>
+              </div>
+            </li>
+             <li class="email-item">
+              <div class="email-item-details">
+                <div class="email-item-sender">Tauri Team</div>
+                <div class="email-item-subject">Welcome to Tauri!</div>
+              </div>
+              <div class="email-item-meta">
+                <div class="email-item-date">2 days ago</div>
+              </div>
+            </li>
+          </ul>
+        </main>
+        <section class="email-content-view">
+          <div class="email-content-placeholder">
+            <p>Select an email to read</p>
+          </div>
+          <!-- Full email content will be displayed here -->
+        </section>
+      </div>
+    </div>
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <h2>Settings</h2>
+        <form id="settings-form">
+          <div class="form-section">
+            <h3>IMAP Server (Receiving Mail)</h3>
+            <label for="imap-host">Host</label>
+            <input type="text" id="imap-host" name="imap_host" required>
+            <label for="imap-port">Port</label>
+            <input type="number" id="imap-port" name="imap_port" value="993" required>
+            <label for="imap-user">Username</label>
+            <input type="text" id="imap-user" name="imap_user" required>
+            <label for="imap-password-cmd">Password Command</label>
+            <input type="text" id="imap-password-cmd" name="imap_password_cmd" required>
+            <small>Command to execute to get the password (e.g., `pass show email/myaccount`).</small>
+          </div>
+          <div class="form-section">
+            <h3>SMTP Server (Sending Mail)</h3>
+            <label for="smtp-host">Host</label>
+            <input type="text" id="smtp-host" name="smtp_host" required>
+            <label for="smtp-port">Port</label>
+            <input type="number" id="smtp-port" name="smtp_port" value="465" required>
+            <label for="smtp-user">Username</label>
+            <input type="text" id="smtp-user" name="smtp_user" required>
+            <label for="smtp-password-cmd">Password Command</label>
+            <input type="text" id="smtp-password-cmd" name="smtp_password_cmd" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" id="cancel-settings-button" class="cancel-button">Cancel</button>
+            <button type="submit" class="save-button">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
