@@ -1,0 +1,44 @@
+# 改行コードの統一
+* text=auto eol=lf
+
+# プログラミング言語ファイル（LF統一）
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.jsx text eol=lf
+*.py text eol=lf
+*.java text eol=lf
+*.c text eol=lf
+*.cpp text eol=lf
+*.cs text eol=lf
+*.xml text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.mmd text eol=lf
+
+# スクリプト系ファイル
+*.sh text eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+
+# 画像ファイル
+*.svg text
+*.gif binary
+*.webp binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+
+# バイナリファイル
+*.exe binary
+*.dll binary
+*.zip binary
+*.tar.gz binary
+*.pdf binary
+*.pbxproj -text
+
+# カスタムフィルター
+*.md filter=cleanup
