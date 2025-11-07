@@ -12,58 +12,21 @@
 
 ### Ubuntu 24.04 / Debian 系
 
+**注意**: このプロジェクトは Tauri v2 を使用しており、WebKit2GTK 4.1 をネイティブでサポートしています。
+シンボリックリンクの作成は不要です。
+
 ```bash
 # 必要なシステムライブラリをインストール
 sudo apt-get update
 sudo apt-get install -y \
-    libgtk-3-dev \
     libwebkit2gtk-4.1-dev \
-    libappindicator3-dev \
-    librsvg2-dev \
-    patchelf \
-    libsoup2.4-dev
-
-# WebKit2GTK 4.0 互換性のためのシンボリックリンクを作成
-# (Tauri v1 は WebKit2GTK 4.0 を期待しているが、Ubuntu 24.04 には 4.1 しかないため)
-# 以下のスクリプトは自動的にアーキテクチャを検出します
-
-ARCH=$(dpkg --print-architecture)
-PKG_CONFIG_DIR="/usr/lib/${ARCH}-linux-gnu/pkgconfig"
-LIB_DIR="/usr/lib/${ARCH}-linux-gnu"
-
-# シンボリックリンクを作成する前に必要なファイルが存在するか確認
-if [ ! -f "${PKG_CONFIG_DIR}/javascriptcoregtk-4.1.pc" ]; then
-    echo "エラー: javascriptcoregtk-4.1.pc が見つかりません。libwebkit2gtk-4.1-dev をインストールしてください。"
-    exit 1
-fi
-
-sudo ln -sf ${PKG_CONFIG_DIR}/javascriptcoregtk-4.1.pc \
-    ${PKG_CONFIG_DIR}/javascriptcoregtk-4.0.pc
-sudo ln -sf ${PKG_CONFIG_DIR}/webkit2gtk-4.1.pc \
-    ${PKG_CONFIG_DIR}/webkit2gtk-4.0.pc
-sudo ln -sf ${PKG_CONFIG_DIR}/webkit2gtk-web-extension-4.1.pc \
-    ${PKG_CONFIG_DIR}/webkit2gtk-web-extension-4.0.pc
-
-sudo ln -sf ${LIB_DIR}/libjavascriptcoregtk-4.1.so \
-    ${LIB_DIR}/libjavascriptcoregtk-4.0.so
-sudo ln -sf ${LIB_DIR}/libwebkit2gtk-4.1.so \
-    ${LIB_DIR}/libwebkit2gtk-4.0.so
-```
-
-**注意**: 上記のシンボリックリンクはシステム全体に影響を与える可能性があります。
-他のアプリケーションが WebKit2GTK 4.0 を期待している場合、問題が発生する可能性があります。
-
-シンボリックリンクを削除する場合:
-```bash
-ARCH=$(dpkg --print-architecture)
-PKG_CONFIG_DIR="/usr/lib/${ARCH}-linux-gnu/pkgconfig"
-LIB_DIR="/usr/lib/${ARCH}-linux-gnu"
-
-sudo rm -f ${PKG_CONFIG_DIR}/javascriptcoregtk-4.0.pc
-sudo rm -f ${PKG_CONFIG_DIR}/webkit2gtk-4.0.pc
-sudo rm -f ${PKG_CONFIG_DIR}/webkit2gtk-web-extension-4.0.pc
-sudo rm -f ${LIB_DIR}/libjavascriptcoregtk-4.0.so
-sudo rm -f ${LIB_DIR}/libwebkit2gtk-4.0.so
+    build-essential \
+    curl \
+    wget \
+    file \
+    libssl-dev \
+    libayatana-appindicator3-dev \
+    librsvg2-dev
 
 **代替方法**: システム全体を変更せずに、現在のプロジェクトだけで対応する方法もありますが、
 Tauri v1 のビルドシステムの制約により、現時点ではシンボリックリンクを使用する方法が
@@ -133,16 +96,10 @@ npm run tauri dev
 **解決方法**: 上記の「システム依存関係のインストール」セクションを参照して必要なパッケージを
 インストールしてください。特に以下を確認:
 
-- `libgtk-3-dev` がインストールされているか
 - `libwebkit2gtk-4.1-dev` がインストールされているか
-- pkg-config が正しく動作しているか (`pkg-config --list-all | grep gtk` で確認)
-
-### WebKit2GTK のバージョン問題
-
-Ubuntu 24.04 などの新しいディストリビューションでは WebKit2GTK 4.0 が削除され 4.1 のみが提供されています。
-Tauri v1 は 4.0 を期待しているため、上記のシンボリックリンクの作成が必要です。
+- pkg-config が正しく動作しているか (`pkg-config --list-all | grep webkit` で確認)
 
 ## 参考資料
 
-- [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites)
+- [Tauri v2 Prerequisites](https://tauri.app/start/prerequisites/)
 - [Rust Installation](https://www.rust-lang.org/tools/install)

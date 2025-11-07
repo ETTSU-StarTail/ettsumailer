@@ -1,27 +1,19 @@
 {
+  "$schema": "https://schema.tauri.app/config/2.0",
+  "productName": "ettsumailer",
+  "version": "0.1.0",
+  "identifier": "com.ettsu.mailer",
   "build": {
     "beforeDevCommand": "npm install && npm run dev",
+    "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm install && npm run build",
-    "devPath": "http://localhost:1420",
-    "distDir": "../dist",
-    "withGlobalTauri": true
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "ettsumailer",
-    "version": "0.1.0"
+  "bundle": {
+    "active": true,
+    "targets": "all"
   },
-  "tauri": {
-    "allowlist": {
-      "all": true
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "com.ettsu.mailer"
-    },
-    "security": {
-      "csp": null
-    },
+  "app": {
     "windows": [
       {
         "fullscreen": false,
@@ -30,6 +22,9 @@
         "width": 1024,
         "height": 768
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   }
 }
