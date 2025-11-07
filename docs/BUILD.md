@@ -31,6 +31,12 @@ ARCH=$(dpkg --print-architecture)
 PKG_CONFIG_DIR="/usr/lib/${ARCH}-linux-gnu/pkgconfig"
 LIB_DIR="/usr/lib/${ARCH}-linux-gnu"
 
+# シンボリックリンクを作成する前に必要なファイルが存在するか確認
+if [ ! -f "${PKG_CONFIG_DIR}/javascriptcoregtk-4.1.pc" ]; then
+    echo "エラー: javascriptcoregtk-4.1.pc が見つかりません。libwebkit2gtk-4.1-dev をインストールしてください。"
+    exit 1
+fi
+
 sudo ln -sf ${PKG_CONFIG_DIR}/javascriptcoregtk-4.1.pc \
     ${PKG_CONFIG_DIR}/javascriptcoregtk-4.0.pc
 sudo ln -sf ${PKG_CONFIG_DIR}/webkit2gtk-4.1.pc \
@@ -46,6 +52,18 @@ sudo ln -sf ${LIB_DIR}/libwebkit2gtk-4.1.so \
 
 **注意**: 上記のシンボリックリンクはシステム全体に影響を与える可能性があります。
 他のアプリケーションが WebKit2GTK 4.0 を期待している場合、問題が発生する可能性があります。
+
+シンボリックリンクを削除する場合:
+```bash
+ARCH=$(dpkg --print-architecture)
+PKG_CONFIG_DIR="/usr/lib/${ARCH}-linux-gnu/pkgconfig"
+LIB_DIR="/usr/lib/${ARCH}-linux-gnu"
+
+sudo rm -f ${PKG_CONFIG_DIR}/javascriptcoregtk-4.0.pc
+sudo rm -f ${PKG_CONFIG_DIR}/webkit2gtk-4.0.pc
+sudo rm -f ${PKG_CONFIG_DIR}/webkit2gtk-web-extension-4.0.pc
+sudo rm -f ${LIB_DIR}/libjavascriptcoregtk-4.0.so
+sudo rm -f ${LIB_DIR}/libwebkit2gtk-4.0.so
 
 **代替方法**: システム全体を変更せずに、現在のプロジェクトだけで対応する方法もありますが、
 Tauri v1 のビルドシステムの制約により、現時点ではシンボリックリンクを使用する方法が
@@ -108,9 +126,9 @@ npm run tauri dev
 これらは通常、より根本的な問題の結果として現れます。
 
 **原因**: これらのクレートは Rust のマクロやシリアライゼーションに使用される基本的なライブラリです。
-これらのビルドスクリプトが失敗する場合、多くの場合、システム依存関係 (特に GTK と WebKit 関連) が
-不足していることが原因です。GTK や WebKit のビルドスクリプトが先に失敗し、その依存関係として
-これらのクレートもビルドに失敗します。
+直接的な問題ではなく、システム依存関係 (特に GTK と WebKit 関連) の不足によって発生する
+**連鎖的な失敗**です。GTK や WebKit のビルドスクリプトが先に失敗すると、それらに依存する
+これらのクレートのビルドも失敗します。
 
 **解決方法**: 上記の「システム依存関係のインストール」セクションを参照して必要なパッケージを
 インストールしてください。特に以下を確認:
