@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 
 // Type definition for the config object, must match Rust structs
 interface Config {
@@ -189,11 +189,20 @@ async function initializeApp() {
   // Attach event listeners
   settingsButton.addEventListener('click', openSettingsModal);
   cancelButton.addEventListener('click', closeSettingsModal);
-  settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
+  
+  // Close modal only if both mousedown and mouseup happen on the overlay
+  // This prevents closing when selecting text and releasing mouse outside modal content
+  let mouseDownTarget: EventTarget | null = null;
+  settingsModal.addEventListener('mousedown', (e) => {
+    mouseDownTarget = e.target;
+  });
+  settingsModal.addEventListener('mouseup', (e) => {
+    if (e.target === settingsModal && mouseDownTarget === settingsModal) {
       closeSettingsModal();
     }
+    mouseDownTarget = null;
   });
+  
   settingsForm.addEventListener('submit', async (e) => {
     await saveSettings(e);
     // After saving, try to load emails immediately
