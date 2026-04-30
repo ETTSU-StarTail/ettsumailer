@@ -1,0 +1,154 @@
+name: 🐞 Bug Report
+description: バグを報告する
+title: "[Bug] "
+labels: ["bug"]
+type: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # バグ報告ガイド
+        このテンプレートを使って、バグを正確に報告してください。
+        **再現手順**と**環境情報**が明確でほど、修正が早くなります🐛
+
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: ✓ 既存の Issue を検索しましたか？
+      description: |
+        同じバグが既に報告されていないか確認してください。
+      options:
+        - label: "同じバグが報告されていないことを確認しました"
+          required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 🔍 バグの説明
+      description: |
+        バグの内容を簡潔に説明してください。
+        - 何が起きたのか？
+        - 想定と異なる動作とは？
+      placeholder: |
+        例：ユーザーが検索ボタンをクリックしても、何も反応がしません。
+        コンソールにはエラーメッセージが出ていません。
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction_steps
+    attributes:
+      label: 📋 再現手順（重要）
+      description: |
+        バグを再現するための手順を **具体的・順序立てて** 記載してください。
+        ステップが詳しいほど、修正者がバグを把握しやすくなります。
+      placeholder: |
+        1. ページ `/dashboard` を開く
+        2. 左側のメニューから「ユーザー管理」をクリック
+        3. フィルタ条件に「アクティブユーザーのみ」を選択
+        4. 「適用」ボタンをクリック
+        5. 【バグ】画面がフリーズし、データが読み込まれない
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: ✅ 期待される動作
+      description: |
+        正常に動作する場合、どのような結果が期待されますか？
+      placeholder: |
+        例：フィルタが適用され、1秒以内にアクティブユーザーの一覧が表示される。
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: ❌ 実際の動作
+      description: |
+        実際に起きている動作を詳しく記載してください。
+      placeholder: |
+        例：画面がフリーズし、ローディング表示のままで動く気配がありません。
+        5分待ってもデータが表示されません。
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🖥️ 環境情報
+      description: |
+        バグが発生した環境情報を記載してください。
+      placeholder: |
+        - **OS**: Windows 11 22H2
+        - **ブラウザ**: Chrome 125.0.6422.142
+        - **Node.js版**: 18.19.0（存在する場合）
+        - **アプリバージョン**: v2.5.1
+        - **ネットワーク**: 社内LAN
+      value: |
+        - **OS**:
+        - **ブラウザ**:
+        - **バージョン**:
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: console_logs
+    attributes:
+      label: 📝 コンソール出力・ログ
+      description: |
+        ブラウザのコンソール、アプリケーションログ、ネットワークエラーなど、
+        関連するログがあれば貼り付けてください。
+      placeholder: |
+        ブラウザの開発者ツール（F12 → Console）からコピーしてください。
+      render: shell
+    validations:
+      required: false
+
+  - type: upload
+    id: screenshot
+    attributes:
+      label: 📸 スクリーンショット（オプション）
+      description: |
+        バグの状態を示すスクリーンショットがあれば、アップロードしてください。
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 🔗 追加情報
+      description: |
+        バグ調査の参考になる追加情報があれば記載してください。
+        - 関連する Issue や PR
+        - 以前は正常に動作していたか（いつまで）
+        - 特定のユーザーのみ発生するか
+        - 他のユーザーでも確認できたか
+      placeholder: |
+        例：このバグは v2.5.0 から発生しているはずです。
+        v2.4.9 では正常に動作していました。
+      value: ""
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✓ チェックリスト（報告前に確認）
+      description: |
+        バグ報告を送信する前に、以下を確認してください。
+      options:
+        - label: "再現手順が具体的で、他人が同じ手順で再現できそう"
+          required: true
+        - label: "期待される動作と実際の動作が明確に区別されている"
+          required: true
+        - label: "環境情報が記載されている"
+          required: true
+        - label: "同様のバグが報告されていないことを確認した"
+          required: true

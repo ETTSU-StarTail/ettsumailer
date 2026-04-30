@@ -1,3 +1,49 @@
+[tasks."bundle-install"]
+description = "Install gem dependencies"
+run = "bundle install"
+
+[tasks.adoc-to-pdf]
+description = "指定の adoc から PDF を生成"
+usage = '''
+arg "<file>" help="Convert AsciiDoc file to PDF format"
+'''
+run = "asciidoctor-pdf -a scripts=cjk -a pdf-theme=ettsu-doc-theme.yml -a pdf-themesdir={{cwd}}/docs/themes -a source-highlighter=rouge -a rouge-style=github -r asciidoctor-diagram -a plantuml-svg-text-mode=plain {{usage.file}}"
+
+[tasks.adoc-to-html]
+description = "指定の adoc から HTML を生成"
+usage = '''
+arg "<file>" help="Convert AsciiDoc file to HTML format"
+'''
+run = "asciidoctor -a stylesheet=ettsu-doc.css -a stylesdir={{cwd}}/docs/themes -a source-highlighter=rouge -a rouge-style=github -r asciidoctor-diagram {{usage.file}}"
+
+[tasks.adoc-to-pdf-all]
+description = "すべての adoc から PDF を生成"
+# Ruby の Dir.glob を使い OS 依存の find コマンドを避ける（クロスプラットフォーム対応）
+# _TEMPLATE.adoc は変換対象から除外する
+run = '''
+#!/usr/bin/env ruby
+Dir.glob("./**/*.adoc").reject { |f| f.match?(/_TEMPLATE\.adoc$/) }.each do |f|
+  system("mise run adoc-to-pdf #{f}") || abort("PDF 変換に失敗しました: #{f}")
+end
+'''
+
+[tasks.adoc-to-html-all]
+description = "すべての adoc から HTML を生成"
+# _TEMPLATE.adoc は変換対象から除外する
+run = '''
+#!/usr/bin/env ruby
+Dir.glob("./**/*.adoc").reject { |f| f.match?(/_TEMPLATE\.adoc$/) }.each do |f|
+  system("mise run adoc-to-html #{f}") || abort("HTML 変換に失敗しました: #{f}")
+end
+'''
+
 [tools]
 node = "latest"
 rust = "stable"
+java = "latest"
+ruby = "latest"
+
+[settings]
+
+[settings.ruby]
+compile = false

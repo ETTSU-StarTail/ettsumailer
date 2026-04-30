@@ -1,0 +1,191 @@
+name: 📋 Task
+description: 開発・デザイン・ドキュメント等のタスクを作成
+title: "[Task] "
+labels: ["task"]
+type: task
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # タスク報告ガイド
+        このテンプレートを使って、タスクの **背景・目的・完了条件・対応範囲** を明確に定義してください。
+        後で読んでも正しく遂行できるような情報を心がけてください。🧩
+
+  - type: dropdown
+    id: task_category
+    attributes:
+      label: 📂 タスク種別
+      description: このタスクはどのカテゴリに属しますか？
+      options:
+        - "🔧 開発（機能実装・バグ修正）"
+        - "🎨 デザイン（UI/UX・ビジュアル）"
+        - "📚 ドキュメント（設計書・API仕様等）"
+        - "🧪 テスト（テスト実装・QA）"
+        - "♻️ リファクタリング（改善・最適化）"
+        - "📋 調査・検証（リサーチ・PoC）"
+        - "🚀 運用・デプロイ"
+        - "その他"
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: background
+    attributes:
+      label: 📖 背景（Context）
+      description: |
+        このタスクが必要になった背景や文脈を説明してください。
+        - どのような状況で発生したか？
+        - 前提条件は何か？
+        - 関連する Issue やドキュメントはあるか？
+      placeholder: |
+        例：ユーザーが検索時に ...という問題を報告しており、
+        その原因は ... にあることが判明しました。
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 🎯 動機（Why）
+      description: |
+        なぜこのタスクに取り組む必要があるのかを明確にしてください。
+        - ビジネス価値は何か？
+        - 解決すべき問題は何か？
+        - ユーザーにとっての価値は何か？
+      placeholder: |
+        例：この機能により、ユーザーは ... な操作ができるようになり、
+        ... の時間短縮が期待できます。
+      value: ""
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: ✅ 受け入れ基準（Acceptance Criteria）
+      description: |
+        「どのようになっていれば完了か」を Given-When-Then 形式で定義してください。
+        明確で検証可能な条件にしてください。
+        複数ある場合は、次の例のように記載してください。
+      placeholder: |
+        - [ ] **given** ユーザーが検索ページを開いた時、**when** 検索条件を入力して送信ボタンをクリック、**then** 結果が1秒以内に表示される
+        - [ ] **given** データが空の場合、**when** 検索を実行、**then** 「該当データがありません」メッセージが表示される
+        - [ ] **given** 検索後、**when** ブラウザをリロード、**then** 前回の検索条件が復元される
+        - [ ] パフォーマンス：検索応答時間は1秒以内
+        - [ ] なし（ブラウザキャッシュをクリア）
+      value: |
+        - [ ] 
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: 📍 対応範囲・影響範囲（Scope & Impact）
+      description: |
+        このタスクで対応する範囲と、影響を受ける範囲を明示してください。
+        **含まれる**と**含まれない**を明確に分ける。
+      placeholder: |
+        #### 含まれる
+        - 検索フォームの入力値バリデーション
+        - 検索結果ページの表示
+        - ローカルストレージへの条件保存
+
+        #### 含まれない
+        - SEO 最適化
+        - Analytics イベント計測（別 Issue で対応）
+        - 多言語対応（言語選択ロジックは既存）
+
+        #### 潜在的な影響
+        - 既存の検索 API 仕様の変更により、他の検索機能も再整備が必要
+      value: |
+        #### 含まれる
+
+        #### 含まれない
+
+        #### 潜在的な影響
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 依存タスク・前提事項（オプション）
+      description: |
+        このタスクに先行して完了する必要があるタスク や前提条件があれば記載してください。
+        - #123 のタスクが完了している必要がある
+        - デザイン案の確認が完了している
+        - API 仕様書が固まっている
+      placeholder: |
+        - #123 データベーススキーマ設計
+        - UI デザイン案の確認（日程: 2026-04-20）
+      value: ""
+    validations:
+      required: false
+
+  - type: dropdown
+    id: estimation
+    attributes:
+      label: 📊 見積もり（推定）
+      description: |
+        このタスクの規模感を選択してください。
+        担当者が変わる可能性がある場合の参考情報として機能します。
+      options:
+        - "XS（1日以内）"
+        - "S（2〜3日）"
+        - "M（1週間）"
+        - "L（2週間かかる可能性）"
+        - "XL（3週間以上、分割推奨）"
+        - "未定（調査後に決定）"
+      default: 4
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: 🔍 追加情報（技術検討・参考・メモ）
+      description: |
+        以下のような追加情報があれば記載してください。
+        - 技術的な検討事項や懸念点
+        - 参考リンク（既存実装、外部記事など）
+        - デザイン案やワイヤーフレーム
+        - 実装アイデアやメモ
+        - 既存の関連コード
+      placeholder: |
+        #### 技術的検討事項
+        - キャッシング戦略：ローカルストレージ vs セッションストレージ
+        - API セキュリティ：レート制限の実装方法
+
+        #### 参考リンク
+        - [既存の検索機能](https://github.com/.../path)
+        - [設計書案](https://docs.example.com/...)
+
+        #### デザイン案
+        - Figma: https://figma.com/...
+
+        #### メモ
+        - 〇〇について確認が必要
+      value: ""
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✓ チェックリスト（報告時に確認）
+      description: |
+        タスク報告時に、以下を確認してください。
+      options:
+        - label: 背景・目的が明確に記載されている
+          required: true
+        - label: 受け入れ基準が検証可能な形で定義されている
+          required: true
+        - label: 対応範囲と含まれない範囲が明示されている
+          required: true
+        - label: 曖昧な表現を避け、具体的に記載している
+          required: true
