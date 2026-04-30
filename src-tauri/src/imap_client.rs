@@ -1,7 +1,7 @@
 use crate::config;
 use imap::types::Flag;
+use keyring_core::Entry;
 use serde::Serialize;
-use std::process::Command;
 
 #[derive(Serialize, Debug, Clone)]
 pub struct EmailSummary {
@@ -12,24 +12,23 @@ pub struct EmailSummary {
     pub unread: bool,
 }
 
-fn get_password(command: &str) -> Result<String, String> {
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(command)
-        .output()
-        .map_err(|e| format!("Failed to execute password command: {}", e))?;
+/// OS ネイティブの資格情報ストア（Windows Credential Manager / macOS Keychain / Linux Keyring）
+/// からパスワードを取得する。
+fn get_password(service: &str, username: &str) -> Result<String, String> {
+    let entry = Entry::new(service, username)
+        .map_err(|e| format!("Failed to create keyring entry: {e}"))?;
+    entry
+        .get_password()
+        .map_err(|e| format!("Failed to get password from credential store: {e}"))
+}
 
-    if !output.status.success() {
-        return Err(format!(
-            "Password command failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-    let password = String::from_utf8(output.stdout)
-        .map_err(|e| format!("Password is not valid UTF-8: {}", e))?
-        .trim()
-        .to_string();
-    Ok(password)
+/// OS ネイティブの資格情報ストアにパスワードを保存する。
+pub fn set_password(service: &str, username: &str, password: &str) -> Result<(), String> {
+    let entry = Entry::new(service, username)
+        .map_err(|e| format!("Failed to create keyring entry: {e}"))?;
+    entry
+        .set_password(password)
+        .map_err(|e| format!("Failed to save password to credential store: {e}"))
 }
 
 fn decode_header(header: &[u8]) -> String {
@@ -45,7 +44,8 @@ pub fn fetch_inbox_emails() -> Result<Vec<EmailSummary>, String> {
         return Err("IMAP host is not configured.".to_string());
     }
 
-    let password = get_password(&imap_config.password_command)?;
+    let service = format!("ettsumailer:imap:{}", imap_config.host);
+    let password = get_password(&service, &imap_config.username)?;
 
     let tls = native_tls::TlsConnector::builder()
         .build()
@@ -165,7 +165,8 @@ pub fn fetch_email_body(uid: u32) -> Result<EmailBody, String> {
         return Err("IMAP host is not configured.".to_string());
     }
 
-    let password = get_password(&imap_config.password_command)?;
+    let service = format!("ettsumailer:imap:{}", imap_config.host);
+    let password = get_password(&service, &imap_config.username)?;
 
     let tls = native_tls::TlsConnector::builder()
         .build()

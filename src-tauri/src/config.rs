@@ -8,7 +8,6 @@ pub struct SmtpConfig {
     pub host: String,
     pub port: u16,
     pub username: String,
-    pub password_command: String, // パスワードを取得するためのコマンド
 }
 
 // IMAPサーバーの設定
@@ -17,7 +16,6 @@ pub struct ImapConfig {
     pub host: String,
     pub port: u16,
     pub username: String,
-    pub password_command: String, // パスワードを取得するためのコマンド
 }
 
 // アプリケーション全体の設定
