@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "identifier": "com.ettsu.mailer",
   "build": {
-    "beforeDevCommand": "npm install && npm run dev",
+    "beforeDevCommand": "bun install && bun run dev",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "npm install && npm run build",
+    "beforeBuildCommand": "bun install && bun run build",
     "frontendDist": "../dist"
   },
   "bundle": {
