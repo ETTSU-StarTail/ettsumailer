@@ -81,9 +81,9 @@
             <input type="number" id="imap-port" name="imap_port" value="993" required>
             <label for="imap-user">Username</label>
             <input type="text" id="imap-user" name="imap_user" required>
-            <label for="imap-password-cmd">Password Command</label>
-            <input type="text" id="imap-password-cmd" name="imap_password_cmd" required>
-            <small>Command to execute to get the password (e.g., `pass show email/myaccount`).</small>
+            <label for="imap-password">Password</label>
+            <input type="password" id="imap-password" name="imap_password" autocomplete="current-password">
+            <small>変更しない場合は空欄のままにしてください。</small>
           </div>
           <div class="form-section">
             <h3>SMTP Server (Sending Mail)</h3>
@@ -93,8 +93,9 @@
             <input type="number" id="smtp-port" name="smtp_port" value="465" required>
             <label for="smtp-user">Username</label>
             <input type="text" id="smtp-user" name="smtp_user" required>
-            <label for="smtp-password-cmd">Password Command</label>
-            <input type="text" id="smtp-password-cmd" name="smtp_password_cmd" required>
+            <label for="smtp-password">Password</label>
+            <input type="password" id="smtp-password" name="smtp_password" autocomplete="current-password">
+            <small>変更しない場合は空欄のままにしてください。</small>
           </div>
           <div class="form-actions">
             <button type="button" id="cancel-settings-button" class="cancel-button">Cancel</button>

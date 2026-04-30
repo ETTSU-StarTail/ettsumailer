@@ -1,18 +1,68 @@
 import { invoke } from "@tauri-apps/api/core";
 
+/**
+ * RFC 2047 MIME encoded-word を人間が読めるテキストにデコードする。
+ * 対応パターン: =?charset?B?base64?= および =?charset?Q?quoted-printable?=
+ */
+function decodeMimeEncodedWord(text: string): string {
+  if (!text) return text;
+  // 隣接する encoded-word 間の空白は RFC 2047 により無視する
+  const collapsed = text.replaceAll(
+    /(=\?[^?]+\?[BbQq]\?[^?]*\?=)\s+(=\?[^?]+\?[BbQq]\?[^?]*\?=)/g,
+    '$1$2'
+  );
+  return collapsed.replaceAll(
+    /=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g,
+    (match, charset: string, encoding: string, encodedText: string) => {
+      try {
+        let bytes: Uint8Array;
+        if (encoding.toUpperCase() === 'B') {
+          const binaryStr = atob(encodedText);
+          bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.codePointAt(i) ?? 0;
+          }
+        } else {
+          // Quoted-Printable: _ は空白、=XX は16進バイト
+          const qpStr = encodedText
+            .replaceAll('_', ' ')
+            .replaceAll(/=([0-9A-Fa-f]{2})/g, (_, hex: string) =>
+              String.fromCodePoint(Number.parseInt(hex, 16))
+            );
+          bytes = new Uint8Array(qpStr.length);
+          for (let i = 0; i < qpStr.length; i++) {
+            bytes[i] = qpStr.codePointAt(i) ?? 0;
+          }
+        }
+        return new TextDecoder(charset).decode(bytes);
+      } catch {
+        return match;
+      }
+    }
+  );
+}
+
+/** HTML 特殊文字をエスケープする（innerHTML への直接埋め込み用）。 */
+function escapeHtml(text: string): string {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 // Type definition for the config object, must match Rust structs
 interface Config {
   smtp: {
     host: string;
     port: number;
     username: string;
-    password_command: string;
   };
   imap: {
     host: string;
     port: number;
     username: string;
-    password_command: string;
   };
 }
 
@@ -31,12 +81,12 @@ function openSettingsModal() {
   (document.getElementById('imap-host') as HTMLInputElement).value = config.imap.host;
   (document.getElementById('imap-port') as HTMLInputElement).value = String(config.imap.port);
   (document.getElementById('imap-user') as HTMLInputElement).value = config.imap.username;
-  (document.getElementById('imap-password-cmd') as HTMLInputElement).value = config.imap.password_command;
+  // パスワードは資格情報ストアに保管するため、フォームには表示しない
 
   (document.getElementById('smtp-host') as HTMLInputElement).value = config.smtp.host;
   (document.getElementById('smtp-port') as HTMLInputElement).value = String(config.smtp.port);
   (document.getElementById('smtp-user') as HTMLInputElement).value = config.smtp.username;
-  (document.getElementById('smtp-password-cmd') as HTMLInputElement).value = config.smtp.password_command;
+  // パスワードは資格情報ストアに保管するため、フォームには表示しない
 
   settingsModal.classList.remove('hidden');
 }
@@ -56,21 +106,38 @@ async function saveSettings(event: SubmitEvent) {
       host: formData.get('imap_host') as string,
       port: Number(formData.get('imap_port')),
       username: formData.get('imap_user') as string,
-      password_command: formData.get('imap_password_cmd') as string,
     },
     smtp: {
       host: formData.get('smtp_host') as string,
       port: Number(formData.get('smtp_port')),
       username: formData.get('smtp_user') as string,
-      password_command: formData.get('smtp_password_cmd') as string,
     }
   };
 
+  const imapPassword = formData.get('imap_password') as string;
+  const smtpPassword = formData.get('smtp_password') as string;
+
   try {
     await invoke('save_config', { config: newConfig });
-    config = newConfig; // Update local config object
+
+    // パスワードが入力された場合のみ資格情報ストアを更新する
+    if (imapPassword) {
+      await invoke('save_password', {
+        service: `ettsumailer:imap:${newConfig.imap.host}`,
+        username: newConfig.imap.username,
+        password: imapPassword,
+      });
+    }
+    if (smtpPassword) {
+      await invoke('save_password', {
+        service: `ettsumailer:smtp:${newConfig.smtp.host}`,
+        username: newConfig.smtp.username,
+        password: smtpPassword,
+      });
+    }
+
+    config = newConfig;
     closeSettingsModal();
-    // Optionally, show a success message
     alert('Settings saved successfully!');
   } catch (error) {
     console.error('Failed to save settings:', error);
@@ -115,18 +182,23 @@ async function displayEmail(uid: number) {
   try {
     const emailBody = await invoke<EmailBody>('fetch_email_body', { uid });
 
+    const subject = escapeHtml(decodeMimeEncodedWord(emailBody.subject));
+    const from    = escapeHtml(decodeMimeEncodedWord(emailBody.from));
+    const to      = escapeHtml(decodeMimeEncodedWord(emailBody.to));
+    const cc      = escapeHtml(decodeMimeEncodedWord(emailBody.cc));
+
     contentView.innerHTML = `
       <div class="email-header">
-        <h2 class="email-subject">${emailBody.subject}</h2>
+        <h2 class="email-subject">${subject}</h2>
         <div class="email-meta-details">
-          <div><strong>From:</strong> ${emailBody.from}</div>
-          <div><strong>To:</strong> ${emailBody.to}</div>
-          ${emailBody.cc ? `<div><strong>CC:</strong> ${emailBody.cc}</div>` : ''}
+          <div><strong>From:</strong> ${from}</div>
+          <div><strong>To:</strong> ${to}</div>
+          ${emailBody.cc ? `<div><strong>CC:</strong> ${cc}</div>` : ''}
           <div><strong>Date:</strong> ${new Date(emailBody.date).toLocaleString()}</div>
         </div>
       </div>
       <div class="email-body">
-        <pre>${emailBody.text_body}</pre>
+        <pre>${escapeHtml(emailBody.text_body)}</pre>
       </div>
     `;
     // If there's an HTML body, we could choose to render it in an iframe for security
@@ -150,17 +222,20 @@ async function loadEmails() {
       return;
     }
 
-    emailList.innerHTML = emails.map(email => `
+    emailList.innerHTML = emails.map(email => {
+      const sender  = escapeHtml(decodeMimeEncodedWord(email.from));
+      const subject = escapeHtml(decodeMimeEncodedWord(email.subject));
+      return `
       <li class="email-item ${email.unread ? 'unread' : ''}" data-uid="${email.uid}">
         <div class="email-item-details">
-          <div class="email-item-sender">${email.from}</div>
-          <div class="email-item-subject">${email.subject}</div>
+          <div class="email-item-sender">${sender}</div>
+          <div class="email-item-subject">${subject}</div>
         </div>
         <div class="email-item-meta">
           <div class="email-item-date">${new Date(email.date).toLocaleDateString()}</div>
         </div>
-      </li>
-    `).join('');
+      </li>`;
+    }).join('');
 
     // Add event listener to the list container using event delegation
     emailList.addEventListener('click', (e) => {
@@ -189,7 +264,7 @@ async function initializeApp() {
   // Attach event listeners
   settingsButton.addEventListener('click', openSettingsModal);
   cancelButton.addEventListener('click', closeSettingsModal);
-  
+
   // Close modal only if both mousedown and mouseup happen on the overlay
   // This prevents closing when selecting text and releasing mouse outside modal content
   let mouseDownTarget: EventTarget | null = null;
@@ -202,7 +277,7 @@ async function initializeApp() {
     }
     mouseDownTarget = null;
   });
-  
+
   settingsForm.addEventListener('submit', async (e) => {
     await saveSettings(e);
     // After saving, try to load emails immediately
