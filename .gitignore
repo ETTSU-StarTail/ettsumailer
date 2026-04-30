@@ -185,3 +185,6 @@ pnpm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# 設定ファイル
+ettsumailer.config.json
