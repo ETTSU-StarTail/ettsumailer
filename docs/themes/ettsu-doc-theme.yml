@@ -1,0 +1,124 @@
+extends: default-with-font-fallbacks
+
+# PlemolJP フォントをカタログに追加し、adoc 本文・PDF出力で利用できるようにする
+font:
+  catalog:
+    merge: true
+    PlemolJP:
+      normal: ./fonts/PlemolJP-Text.ttf
+      bold: ./fonts/PlemolJP-Bold.ttf
+      italic: ./fonts/PlemolJP-TextItalic.ttf
+      bold_italic: ./fonts/PlemolJP-BoldItalic.ttf
+    # 絵文字フォールバック（モノクロ版 Variable Font）
+    NotoEmoji:
+      normal: ./fonts/NotoEmoji-VariableFont_wght.ttf
+      bold: ./fonts/NotoEmoji-VariableFont_wght.ttf
+      italic: ./fonts/NotoEmoji-VariableFont_wght.ttf
+      bold_italic: ./fonts/NotoEmoji-VariableFont_wght.ttf
+  fallbacks: [PlemolJP, NotoEmoji]
+
+# ettsu doc テーマ（Asciidoctor PDF）
+# 目的:
+# - デジタル表示でまぶしさを抑える
+# - 紙出力でも淡すぎず読みやすいコントラストを維持する
+
+color_page_background: FFFFFD
+color_surface_soft: F4F7F9
+color_surface_alt: FAFBFC
+color_text_main: 2F3A40
+color_text_muted: 61707A
+color_heading: 1E4F66
+color_link: 2F6EA0
+color_line_soft: D9E1E7
+color_line_table: D3DDE4
+color_inline_code: 8C365E
+color_code_text: 26353F
+
+page:
+  background_color: $color_page_background
+  margin: [10mm, 10mm, 10mm, 12.5mm]
+
+# デフォルトフォントを PlemolJP に設定
+base:
+  font_family: PlemolJP
+  text_align: left
+  font_color: $color_text_main
+  line_height_length: 13
+  border_color: $color_line_soft
+
+heading:
+  font_color: $color_heading
+
+link:
+  font_color: $color_link
+
+caption:
+  font_color: $color_text_muted
+  text_align: center
+
+title_page:
+  subtitle:
+    font_color: $color_text_muted
+  authors:
+    font_color: $color_text_main
+  revision:
+    font_color: $color_text_muted
+
+code:
+  background_color: $color_surface_soft
+  border_color: $color_line_soft
+  font_color: $color_code_text
+
+codespan:
+  font_color: $color_inline_code
+
+sidebar:
+  background_color: $color_surface_soft
+  border_color: $color_line_soft
+  title:
+    font_color: $color_heading
+
+example:
+  border_color: $color_line_soft
+  background_color: $color_page_background
+
+quote:
+  border_color: $color_line_soft
+  cite:
+    font_color: $color_text_muted
+
+verse:
+  border_color: $color_line_soft
+  cite:
+    font_color: $color_text_muted
+
+admonition:
+  column_rule_color: C9D8E2
+  label:
+    font_color: $color_heading
+
+table:
+  border_color: $color_line_table
+  head:
+    background_color: $color_heading
+    font_color: $color_page_background
+  body:
+    stripe_background_color: $color_surface_alt
+  foot:
+    background_color: $color_heading
+    font_color: $color_page_background
+
+thematic_break:
+  border_color: $color_line_soft
+
+toc:
+  dot_leader:
+    font_color: A5B1B9
+
+header:
+  border_color: $color_line_soft
+  font_color: $color_text_muted
+
+footer:
+  border_color: $color_line_soft
+  font_color: $color_text_muted

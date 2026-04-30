@@ -1,0 +1,155 @@
+@charset "UTF-8";
+
+/*
+ * ettsu-doc テーマ（Asciidoctor HTML）
+ *
+ * 公式推奨の「default stylesheet を拡張する」方式を採用。
+ * AsciiDocの既定ロールやレイアウト機能を維持しながら、
+ * 目に優しい配色へ上書きする。
+ */
+@import "./asciidoctor-default.css";
+
+:root {
+  --do-bg: #fffffd;
+  --do-surface-soft: #f4f7f9;
+  --do-surface-alt: #fafbfc;
+  --do-text: #2f3a40;
+  --do-text-muted: #61707a;
+  --do-heading: #1e4f66;
+  --do-link: #2f6ea0;
+  --do-line: #d9e1e7;
+  --do-line-table: #d3dde4;
+  --do-code: #26353f;
+  --do-inline-code: #8c365e;
+}
+
+html,
+body {
+  background: var(--do-bg);
+  color: var(--do-text);
+}
+
+body {
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+#toctitle,
+.sidebarblock > .content > .title {
+  color: var(--do-heading);
+}
+
+a,
+a:visited {
+  color: var(--do-link);
+}
+
+#header,
+#content,
+#footnotes,
+#footer {
+  max-width: 62rem;
+  margin: 0.5rem auto;
+  padding: 0 0.5rem;
+}
+
+#footer {
+  color: var(--do-text-muted);
+  border-top: 1px solid var(--do-line);
+}
+
+#toc.toc2 {
+  background: var(--do-surface-soft);
+  border-left: 1px solid var(--do-line);
+}
+
+.admonitionblock > table td.content {
+  border-left: 3px solid #c9d8e2;
+}
+
+.admonitionblock td.icon i {
+  color: var(--do-heading);
+}
+
+code,
+pre,
+.literalblock pre,
+.listingblock > .content > pre {
+  color: var(--do-code);
+}
+
+:not(pre) > code,
+:not(pre) > .inline-code {
+  color: var(--do-inline-code);
+  background: var(--do-surface-soft);
+  border: 1px solid var(--do-line);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+}
+
+.literalblock pre,
+.listingblock > .content > pre {
+  background: var(--do-surface-soft);
+  border: 1px solid var(--do-line);
+  border-radius: 4px;
+}
+
+table.tableblock,
+th.tableblock,
+td.tableblock {
+  border-color: var(--do-line-table);
+}
+
+table.tableblock thead th,
+table.tableblock tfoot th {
+  background: var(--do-heading);
+  color: var(--do-bg);
+  font-weight: 600;
+}
+
+table.tableblock tbody tr:nth-child(even) {
+  background: var(--do-surface-alt);
+}
+
+blockquote {
+  border-left: 4px solid var(--do-line);
+  color: var(--do-text);
+  background: var(--do-surface-soft);
+}
+
+caption,
+.tableblock .title,
+.imageblock .title,
+.literalblock .title,
+.listingblock .title {
+  text-align: center;
+}
+
+@media print {
+  html,
+  body {
+    background: #ffffff;
+    color: #262f34;
+  }
+
+  a,
+  a:visited {
+    color: #2a5f86;
+    text-decoration: none;
+  }
+
+  .admonitionblock > table td.content,
+  .literalblock pre,
+  .listingblock > .content > pre,
+  table.tableblock,
+  th.tableblock,
+  td.tableblock {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

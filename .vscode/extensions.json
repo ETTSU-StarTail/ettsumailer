@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "aaron-bond.better-comments",
+    "asciidoctor.asciidoctor-vscode",
+    "corschenzi.mermaid-graphical-editor",
+    "editorconfig.editorconfig",
+    "github.vscode-pull-request-github",
+    "hverlin.mise-vscode",
+    "jebbs.plantuml",
+    "mechatroner.rainbow-csv",
+    "mhutchie.git-graph",
+    "ms-vscode-remote.vscode-remote-extensionpack",
+    "ms-vscode.live-server",
+    "ms-vsliveshare.vsliveshare",
+    "oderwat.indent-rainbow",
+    "sandcastle.vscode-open",
+    "sonarsource.sonarlint-vscode",
+    "vivaxy.vscode-conventional-commits",
+  ]
+}
