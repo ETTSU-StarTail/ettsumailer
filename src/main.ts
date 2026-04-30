@@ -166,8 +166,8 @@ async function loadEmails() {
     emailList.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       const emailItem = target.closest<HTMLLIElement>('.email-item');
-      if (emailItem && emailItem.dataset.uid) {
-        const uid = parseInt(emailItem.dataset.uid, 10);
+      if (emailItem?.dataset.uid) {
+        const uid = Number.parseInt(emailItem.dataset.uid, 10);
         displayEmail(uid);
       }
     });

@@ -99,7 +99,7 @@ body {
 
 .folder-item.active {
   background-color: rgba(79, 70, 229, 0.2);
-  color: #a5b4fc;
+  color: #ffffff;
 }
 
 .folder-item:hover:not(.active) {
