@@ -141,6 +141,71 @@ function hasRenderableHtml(html: string): boolean {
   return /<(html|body|div|p|br|table|tr|td|span|img|a|style|head|meta)\b/i.test(html);
 }
 
+/**
+ * HTMLビュー表示用に、メール本文から危険/不要な実行要素を取り除く。
+ * 画像読み込みは許可しつつ、script 実行と外部接続は抑止する。
+ */
+function sanitizeHtmlForIframe(html: string): string {
+  if (!html) return '';
+
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  doc.querySelectorAll('script, base').forEach(node => node.remove());
+
+  doc.querySelectorAll('noscript').forEach(node => {
+    const fragment = document.createDocumentFragment();
+    while (node.firstChild) {
+      fragment.appendChild(node.firstChild);
+    }
+    node.replaceWith(fragment);
+  });
+
+  doc.querySelectorAll('*').forEach(el => {
+    for (const attr of Array.from(el.attributes)) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim();
+
+      if (name.startsWith('on')) {
+        el.removeAttribute(attr.name);
+        continue;
+      }
+
+      if ((name === 'href' || name === 'src' || name === 'srcset') && /^javascript:/i.test(value)) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  const csp = doc.createElement('meta');
+  csp.setAttribute('http-equiv', 'Content-Security-Policy');
+  csp.setAttribute(
+    'content',
+    [
+      "default-src 'none'",
+      "img-src http: https: data: blob:",
+      "media-src http: https: data: blob:",
+      "style-src 'unsafe-inline' http: https: data:",
+      "font-src http: https: data:",
+      "script-src 'none'",
+      "connect-src 'none'",
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'none'",
+      "form-action 'none'",
+      'upgrade-insecure-requests',
+    ].join('; ')
+  );
+
+  const referrer = doc.createElement('meta');
+  referrer.name = 'referrer';
+  referrer.content = 'no-referrer';
+
+  doc.head.prepend(referrer);
+  doc.head.prepend(csp);
+
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
+}
+
 // Type definition for the config object, must match Rust structs
 interface Config {
   smtp: {
@@ -321,25 +386,32 @@ async function displayEmail(uid: number) {
     const renderHtmlView = () => {
       bodyContainer.innerHTML = '';
       const iframe = document.createElement('iframe');
-      // allow-scripts: iframe 内スクリプトを許可
-      // allow-same-origin は非設定 → null オリジンで動作し親 DOM/Cookie に触れない
-      // allow-forms / allow-top-navigation は禁止のまま
-      iframe.setAttribute('sandbox', 'allow-scripts');
+      // 画像などの受動的リソースは許可しつつ、メール本文の script 実行は許可しない。
+      // allow-same-origin を付けることで親側からリンククリックだけを安全に補足する。
+      // allow-forms / allow-top-navigation は禁止のまま維持。
+      iframe.setAttribute('sandbox', 'allow-same-origin');
       iframe.title = 'メール本文（HTML）';
       iframe.classList.add('email-html-frame');
-      // リンク・window.open を postMessage 経由で親に転送するスクリプトを注入
-      const interceptScript = [
-        '<script>',
-        'document.addEventListener("click",function(e){',
-        '  var a=e.target&&e.target.closest("a[href]");',
-        '  if(a){e.preventDefault();window.parent.postMessage({type:"open-url",url:a.href},"*");}',
-        '});',
-        'window.open=function(url){',
-        '  if(url)window.parent.postMessage({type:"open-url",url:String(url)},"*");',
-        '};',
-        '</script>',
-      ].join('');
-      iframe.srcdoc = interceptScript + emailBody.html_body;
+      iframe.srcdoc = sanitizeHtmlForIframe(emailBody.html_body);
+
+      iframe.addEventListener('load', () => {
+        const doc = iframe.contentDocument;
+        if (!doc) return;
+
+        doc.addEventListener('click', async (e) => {
+          const target = e.target as Element | null;
+          const anchor = target?.closest('a[href]') as HTMLAnchorElement | null;
+          if (!anchor) return;
+          const href = anchor.getAttribute('href')?.trim();
+          if (!href) return;
+
+          e.preventDefault();
+          if (/^https?:\/\//i.test(href) || /^mailto:/i.test(href)) {
+            await open(href);
+          }
+        });
+      });
+
       bodyContainer.appendChild(iframe);
     };
 
@@ -436,19 +508,6 @@ async function loadEmails(page = currentPage) {
 
 
 async function initializeApp() {
-  // iframe 内（HTML メール）からの URL 開封リクエストを受け取り既定ブラウザで開く
-  // sandbox="allow-scripts" + postMessage パターン。allow-same-origin 非設定のため安全
-  window.addEventListener('message', async (e: MessageEvent) => {
-    // allow-same-origin 非設定の sandbox iframe からのメッセージは origin が "null"
-    if (e.origin !== 'null') return;
-    if (e.data?.type !== 'open-url' || typeof e.data.url !== 'string') return;
-    const url: string = e.data.url;
-    // http/https/mailto のみ許可（javascript: などを除外）
-    if (/^https?:\/\//i.test(url) || /^mailto:/i.test(url)) {
-      await open(url);
-    }
-  });
-
   // Initialize DOM elements
   settingsModal = document.getElementById('settings-modal') as HTMLDivElement;
   settingsForm = document.getElementById('settings-form') as HTMLFormElement;
