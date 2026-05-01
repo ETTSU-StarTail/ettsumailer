@@ -65,14 +65,14 @@ pub fn fetch_inbox_emails() -> Result<Vec<EmailSummary>, String> {
         .select("INBOX")
         .map_err(|e| format!("Failed to select INBOX: {}", e))?;
 
-    // Fetch the last 20 messages by sequence number
+    // 全件取得して新着順（降順）に並べる
     let seq_set = "1:*".to_string();
     let messages = imap_session
         .fetch(seq_set, "(UID ENVELOPE FLAGS)")
         .map_err(|e| format!("Failed to fetch messages: {}", e))?;
 
     let mut emails = vec![];
-    for msg in messages.iter().rev().take(30) {
+    for msg in messages.iter().rev() {
         let envelope = msg.envelope().ok_or("Message has no envelope")?;
         let uid = msg.uid.ok_or("Message has no UID")?;
 
