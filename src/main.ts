@@ -243,6 +243,16 @@ interface EmailSummary {
   unread: boolean;
 }
 
+// Type definition for FetchResult, must match Rust struct
+interface FetchResult {
+  emails: EmailSummary[];
+  total: number;
+  page: number;
+  total_pages: number;
+}
+
+let currentPage = 1;
+
 // Type definition for EmailBody, must match Rust struct
 interface EmailBody {
   from: string;
@@ -365,21 +375,24 @@ async function displayEmail(uid: number) {
   }
 }
 
-async function loadEmails() {
+async function loadEmails(page = currentPage) {
   const emailList = document.querySelector('.email-list');
+  const paginationBar = document.querySelector<HTMLElement>('.pagination-bar');
   if (!emailList) return;
 
+  currentPage = page;
   emailList.innerHTML = '<li class="email-item-placeholder">Loading emails...</li>';
 
   try {
-    const emails = await invoke<EmailSummary[]>('fetch_emails');
+    const result = await invoke<FetchResult>('fetch_emails', { page });
 
-    if (emails.length === 0) {
+    if (result.emails.length === 0) {
       emailList.innerHTML = '<li class="email-item-placeholder">Your inbox is empty.</li>';
+      if (paginationBar) paginationBar.hidden = true;
       return;
     }
 
-    emailList.innerHTML = emails.map(email => {
+    emailList.innerHTML = result.emails.map(email => {
       const sender  = escapeHtml(decodeMimeEncodedWord(email.from));
       const subject = escapeHtml(decodeMimeEncodedWord(email.subject));
       return `
@@ -393,6 +406,17 @@ async function loadEmails() {
         </div>
       </li>`;
     }).join('');
+
+    // ページネーションバーを更新
+    if (paginationBar) {
+      const prevBtn = paginationBar.querySelector<HTMLButtonElement>('.pagination-prev');
+      const nextBtn = paginationBar.querySelector<HTMLButtonElement>('.pagination-next');
+      const pageInfo = paginationBar.querySelector<HTMLSpanElement>('.pagination-info');
+      if (prevBtn) prevBtn.disabled = result.page <= 1;
+      if (nextBtn) nextBtn.disabled = result.page >= result.total_pages;
+      if (pageInfo) pageInfo.textContent = `${result.page} / ${result.total_pages}`;
+      paginationBar.hidden = result.total_pages <= 1;
+    }
 
     // Add event listener to the list container using event delegation
     emailList.addEventListener('click', (e) => {
@@ -434,6 +458,12 @@ async function initializeApp() {
   // Attach event listeners
   settingsButton.addEventListener('click', openSettingsModal);
   cancelButton.addEventListener('click', closeSettingsModal);
+
+  // Pagination buttons
+  const prevBtn = document.querySelector<HTMLButtonElement>('.pagination-prev');
+  const nextBtn = document.querySelector<HTMLButtonElement>('.pagination-next');
+  prevBtn?.addEventListener('click', () => loadEmails(currentPage - 1));
+  nextBtn?.addEventListener('click', () => loadEmails(currentPage + 1));
 
   // Close modal only if both mousedown and mouseup happen on the overlay
   // This prevents closing when selecting text and releasing mouse outside modal content

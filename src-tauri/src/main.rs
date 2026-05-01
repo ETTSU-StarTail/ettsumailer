@@ -24,9 +24,9 @@ fn save_password(service: String, username: String, password: String) -> Result<
 }
 
 #[tauri::command]
-async fn fetch_emails() -> Result<Vec<imap_client::EmailSummary>, String> {
+async fn fetch_emails(page: u32) -> Result<imap_client::FetchResult, String> {
     // Use spawn_blocking for the sync IMAP code to avoid blocking the main async runtime
-    tokio::task::spawn_blocking(|| imap_client::fetch_inbox_emails())
+    tokio::task::spawn_blocking(move || imap_client::fetch_inbox_emails(page))
         .await
         .map_err(|e| format!("Task join error: {}", e))?
 }

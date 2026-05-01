@@ -172,6 +172,49 @@ body {
   flex-grow: 1;
 }
 
+/* ページネーションバー */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.pagination-bar[hidden] {
+  display: none;
+}
+
+.pagination-bar button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.6rem;
+}
+
+.pagination-bar button:hover:not(:disabled) {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+}
+
+.pagination-bar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
 .email-item {
   display: flex;
   justify-content: space-between;
