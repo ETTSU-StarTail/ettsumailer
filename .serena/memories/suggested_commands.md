@@ -1,0 +1,7 @@
+- Install deps: `bun install`
+- Frontend dev: `bun run dev`
+- Tauri dev: `bun run tauri dev`
+- Frontend build: `bun run build`
+- Rust build: `cd src-tauri; cargo build`
+- Tauri release build: `bun run tauri build`
+- Git status: `git status --short`

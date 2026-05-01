@@ -1,0 +1,4 @@
+- Purpose: Tauri v2 + Rust + TypeScript で作るデスクトップメーラ（IMAP 受信中心のプロトタイプ）。
+- Stack: Rust (Tauri v2), TypeScript/Vite, HTML/CSS, Bun。
+- Structure: `src-tauri/` (Rust backend), `src/` (frontend), `docs/` (build/spec docs)。
+- Config: `src-tauri/ettsumailer.config.json` にサーバ設定、パスワードは OS 資格情報ストア運用へ移行中。

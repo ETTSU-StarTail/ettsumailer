@@ -1,0 +1,24 @@
+= メタデータテンプレート
+:author: ETTSU-StarTail
+:email: 46245666+ETTSU-StarTail@users.noreply.github.com
+:revnumber: v0.1
+:revdate:
+:title-page:
+:toc:
+:toc-title: 目次
+:toclevels: 3
+:table-caption: 表
+:figure-caption: 図
+:source-highlighter: rouge
+:doctype: article
+:icons: font
+:pdf-page-size: A4
+:pdf-page-margin: [10mm, 10mm, 10mm, 12.5mm]
+:chapter-label:
+:sectnums:
+:sectnumlevels: 3
+
+// 目次用改ページ
+<<<
+
+// ここから本文
