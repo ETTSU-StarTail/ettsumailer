@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-shell";
 
 /**
  * RFC 2047 MIME encoded-word を人間が読めるテキストにデコードする。
@@ -297,14 +298,38 @@ async function displayEmail(uid: number) {
     const bodyContainer = document.getElementById('email-body-container');
     if (!bodyContainer) return;
 
+    // テキストビュー内のリンクを既定ブラウザで開く（Tauri WebView 内ナビゲーション防止）
+    bodyContainer.addEventListener('click', async (e) => {
+      const anchor = (e.target as HTMLElement).closest('a');
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+      e.preventDefault();
+      await open(href);
+    });
+
     const renderHtmlView = () => {
       bodyContainer.innerHTML = '';
       const iframe = document.createElement('iframe');
-      // script / form / navigation などを禁止した安全表示
-      iframe.setAttribute('sandbox', '');
+      // allow-scripts: iframe 内スクリプトを許可
+      // allow-same-origin は非設定 → null オリジンで動作し親 DOM/Cookie に触れない
+      // allow-forms / allow-top-navigation は禁止のまま
+      iframe.setAttribute('sandbox', 'allow-scripts');
       iframe.title = 'メール本文（HTML）';
       iframe.classList.add('email-html-frame');
-      iframe.srcdoc = emailBody.html_body;
+      // リンク・window.open を postMessage 経由で親に転送するスクリプトを注入
+      const interceptScript = [
+        '<script>',
+        'document.addEventListener("click",function(e){',
+        '  var a=e.target&&e.target.closest("a[href]");',
+        '  if(a){e.preventDefault();window.parent.postMessage({type:"open-url",url:a.href},"*");}',
+        '});',
+        'window.open=function(url){',
+        '  if(url)window.parent.postMessage({type:"open-url",url:String(url)},"*");',
+        '};',
+        '</script>',
+      ].join('');
+      iframe.srcdoc = interceptScript + emailBody.html_body;
       bodyContainer.appendChild(iframe);
     };
 
@@ -387,6 +412,19 @@ async function loadEmails() {
 
 
 async function initializeApp() {
+  // iframe 内（HTML メール）からの URL 開封リクエストを受け取り既定ブラウザで開く
+  // sandbox="allow-scripts" + postMessage パターン。allow-same-origin 非設定のため安全
+  window.addEventListener('message', async (e: MessageEvent) => {
+    // allow-same-origin 非設定の sandbox iframe からのメッセージは origin が "null"
+    if (e.origin !== 'null') return;
+    if (e.data?.type !== 'open-url' || typeof e.data.url !== 'string') return;
+    const url: string = e.data.url;
+    // http/https/mailto のみ許可（javascript: などを除外）
+    if (/^https?:\/\//i.test(url) || /^mailto:/i.test(url)) {
+      await open(url);
+    }
+  });
+
   // Initialize DOM elements
   settingsModal = document.getElementById('settings-modal') as HTMLDivElement;
   settingsForm = document.getElementById('settings-form') as HTMLFormElement;
