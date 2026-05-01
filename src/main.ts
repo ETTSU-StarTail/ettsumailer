@@ -52,6 +52,94 @@ function escapeHtml(text: string): string {
     .replaceAll("'", '&#39;');
 }
 
+/** プレーンテキスト内の URL / mailto を安全なリンクに変換する。 */
+function linkifyPlainText(text: string): string {
+  const urlRegex = /((?:https?:\/\/|mailto:)[^\s<>")\]]+)/gi;
+  let html = '';
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(urlRegex)) {
+    const fullMatch = match[0];
+    const index = match.index ?? 0;
+
+    html += escapeHtml(text.slice(lastIndex, index));
+    html += `<a href="${escapeHtml(fullMatch)}" target="_blank" rel="noopener noreferrer">${escapeHtml(fullMatch)}</a>`;
+    lastIndex = index + fullMatch.length;
+  }
+
+  html += escapeHtml(text.slice(lastIndex));
+  return html.replaceAll('\n', '<br>');
+}
+
+/**
+ * HTML メールから読みやすい safe-HTML を生成する。
+ * DOM を直接歩き、<a> はリンクとして保持・<img> は alt テキスト化・
+ * ブロック要素を改行に変換する。script/style などは除去する。
+ */
+function htmlToReadableHtml(html: string): string {
+  if (!html) return '';
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.body.querySelectorAll('script, style, noscript, template').forEach(n => n.remove());
+
+  const BLOCK_TAGS = new Set([
+    'p', 'div', 'section', 'article', 'header', 'footer', 'aside', 'main',
+    'ul', 'ol', 'table', 'tr', 'blockquote', 'pre',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  ]);
+
+  function walk(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return escapeHtml((node.textContent ?? '').replaceAll('\u00A0', ' '));
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+    const el = node as Element;
+    const tag = el.tagName.toLowerCase();
+    const inner = Array.from(el.childNodes).map(walk).join('');
+
+    switch (tag) {
+      case 'br':  return '<br>';
+      case 'hr':  return '<br>';
+      case 'img': {
+        const alt = (el.getAttribute('alt') ?? '').trim();
+        return alt ? escapeHtml(`[画像: ${alt}]`) : '';
+      }
+      case 'a': {
+        const href = (el.getAttribute('href') ?? '').trim();
+        // javascript: / cid: は安全でないため除去
+        if (!href || /^(javascript:|cid:)/i.test(href)) return inner;
+        return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${inner}</a>`;
+      }
+      case 'li':     return `• ${inner}<br>`;
+      case 'strong':
+      case 'b':      return `<strong>${inner}</strong>`;
+      case 'em':
+      case 'i':      return `<em>${inner}</em>`;
+      case 'code':   return `<code>${inner}</code>`;
+      default: {
+        // ブロック要素: inner が既に <br> で終わっていれば重複して追加しない
+        if (BLOCK_TAGS.has(tag)) return /<br>\s*$/.test(inner) ? inner : `${inner}<br>`;
+        return inner;
+      }
+    }
+  }
+
+  return Array.from(doc.body.childNodes)
+    .map(walk)
+    .join('')
+    .replaceAll(/(<br>\s*){3,}/g, '<br><br>')
+    .trim();
+}
+
+/**
+ * HTML 本文としてレンダリングする価値があるかを判定する。
+ * 角括弧を含むだけのプレーンテキスト誤判定を避けるため、主要タグの存在を確認する。
+ */
+function hasRenderableHtml(html: string): boolean {
+  if (!html?.trim()) return false;
+  return /<(html|body|div|p|br|table|tr|td|span|img|a|style|head|meta)\b/i.test(html);
+}
+
 // Type definition for the config object, must match Rust structs
 interface Config {
   smtp: {
@@ -166,7 +254,7 @@ interface EmailBody {
 }
 
 async function displayEmail(uid: number) {
-  const contentView = document.querySelector('.email-content-view');
+  const contentView = document.querySelector<HTMLElement>('.email-content-view');
   if (!contentView) return;
 
   // Highlight the active email in the list
@@ -176,8 +264,7 @@ async function displayEmail(uid: number) {
   // Mark as read visually
   currentEmailItem?.classList.remove('unread');
 
-
-  contentView.innerHTML = `<div class="email-content-placeholder">Loading email...</div>`;
+  contentView.innerHTML = `<div class="email-content-placeholder">読み込み中…</div>`;
 
   try {
     const emailBody = await invoke<EmailBody>('fetch_email_body', { uid });
@@ -186,6 +273,8 @@ async function displayEmail(uid: number) {
     const from    = escapeHtml(decodeMimeEncodedWord(emailBody.from));
     const to      = escapeHtml(decodeMimeEncodedWord(emailBody.to));
     const cc      = escapeHtml(decodeMimeEncodedWord(emailBody.cc));
+    // HTML本文として意味のあるタグがある場合のみ HTML ビューを有効化
+    const hasHtml = hasRenderableHtml(emailBody.html_body ?? '');
 
     contentView.innerHTML = `
       <div class="email-header">
@@ -196,15 +285,58 @@ async function displayEmail(uid: number) {
           ${emailBody.cc ? `<div><strong>CC:</strong> ${cc}</div>` : ''}
           <div><strong>Date:</strong> ${new Date(emailBody.date).toLocaleString()}</div>
         </div>
+        ${hasHtml ? `
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" data-view="text">テキスト</button>
+          <button class="view-toggle-btn" data-view="html">HTML</button>
+        </div>` : ''}
       </div>
-      <div class="email-body">
-        <pre>${escapeHtml(emailBody.text_body)}</pre>
-      </div>
+      <div class="email-body" id="email-body-container"></div>
     `;
-    // If there's an HTML body, we could choose to render it in an iframe for security
-    // For this prototype, we will stick to the text body.
+
+    const bodyContainer = document.getElementById('email-body-container');
+    if (!bodyContainer) return;
+
+    const renderHtmlView = () => {
+      bodyContainer.innerHTML = '';
+      const iframe = document.createElement('iframe');
+      // script / form / navigation などを禁止した安全表示
+      iframe.setAttribute('sandbox', '');
+      iframe.title = 'メール本文（HTML）';
+      iframe.classList.add('email-html-frame');
+      iframe.srcdoc = emailBody.html_body;
+      bodyContainer.appendChild(iframe);
+    };
+
+    const renderTextView = () => {
+      if (hasHtml) {
+        const safeHtml = htmlToReadableHtml(emailBody.html_body) || '（本文を表示できませんでした）';
+        bodyContainer.innerHTML = `<div class="email-text-body">${safeHtml}</div>`;
+      } else {
+        // CRLF → LF に正規化（<pre> 内で \r が余分な改行になるのを防ぐ）
+        const plain = emailBody.text_body.replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim() || '（本文を表示できませんでした）';
+        bodyContainer.innerHTML = `<pre class="email-text-body">${linkifyPlainText(plain)}</pre>`;
+      }
+    };
+
+    if (hasHtml) {
+      renderTextView();
+      contentView.querySelectorAll<HTMLButtonElement>('.view-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          contentView.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          if (btn.dataset.view === 'text') {
+            renderTextView();
+          } else {
+            renderHtmlView();
+          }
+        });
+      });
+    } else {
+      renderTextView();
+    }
   } catch (error) {
-    contentView.innerHTML = `<div class="email-content-placeholder error">Could not load email: ${error}</div>`;
+    contentView.innerHTML = `<div class="email-content-placeholder error">メールを読み込めませんでした: ${escapeHtml(String(error))}</div>`;
   }
 }
 
