@@ -1,0 +1,6 @@
+{
+  "github.copilot.chat.alternateGptPrompt.enabled": true,
+  "github.copilot.chat.alternateGeminiModelFPrompt.enabled": true,
+  "github.copilot.chat.gpt5AlternativePatch": true,
+  "chat.agent.maxRequests": 100
+}

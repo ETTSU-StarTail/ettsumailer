@@ -1,0 +1,540 @@
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  /* Warm dark palette — Stone 系でブルーライトを抑制し、長時間閲覧でも目に優しい配色 */
+  --color-bg:             #1c1917; /* stone-900 */
+  --color-bg-secondary:   #292524; /* stone-800 */
+  --color-border:         #44403c; /* stone-600 */
+  --color-text:           #e7e5e4; /* stone-200 */
+  --color-text-secondary: #a8a29e; /* stone-400 */
+  --color-accent:         #818cf8; /* indigo-400（明るさを抑えたソフトアクセント） */
+  --color-accent-hover:   #6366f1; /* indigo-500 */
+  --color-accent-subtle:  rgba(129, 140, 248, 0.15);
+  --color-error:          #f87171; /* red-400 */
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden; /* Prevents scrollbars on the body */
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: 240px 3fr 5fr; /* Sidebar, Email List, Email Content */
+  height: 100vh;
+  width: 100vw;
+}
+
+.sidebar {
+  background-color: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  box-sizing: border-box;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
+  overflow: hidden;
+}
+
+.email-list-view {
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
+}
+
+.email-content-view {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
+}
+
+.email-content-placeholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: 1.2rem;
+}
+
+.sidebar-header {
+  margin-bottom: 1.5rem;
+}
+
+.compose-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.compose-button:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.folder-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.folder-item {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.folder-item.active {
+  background-color: var(--color-accent-subtle);
+  color: #ffffff;
+}
+
+.folder-item:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-footer {
+  margin-top: 1rem;
+}
+
+.settings-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.settings-button:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.email-list-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.email-list-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.toolbar {
+  margin-top: 1rem;
+}
+
+.toolbar input[type="search"] {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+.email-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
+
+/* ページネーションバー */
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.pagination-bar[hidden] {
+  display: none;
+}
+
+.pagination-bar button {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0.2rem 0.6rem;
+}
+
+.pagination-bar button:hover:not(:disabled) {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+}
+
+.pagination-bar button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+.email-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  /* 画面外のアイテムの描画をスキップ（全件表示時のスクロールコスト削減） */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3.75rem;
+}
+
+.email-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.email-item.active {
+  background-color: var(--color-accent);
+}
+
+.email-item.unread .email-item-sender,
+.email-item.unread .email-item-subject {
+  font-weight: bold;
+  color: var(--color-text);
+}
+
+.email-item-details {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.email-item-sender {
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.email-item-subject {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.email-item-meta {
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.email-item-date {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* Settings Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.modal-overlay.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.modal-content {
+  background-color: var(--color-bg-secondary);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  border: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.form-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--color-text);
+  font-size: 1.1rem;
+}
+
+#settings-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+#settings-form input[type="text"],
+#settings-form input[type="number"],
+#settings-form input[type="password"] {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text);
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+#settings-form small {
+  display: block;
+  margin-top: -0.25rem;
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.form-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.form-actions .save-button {
+  background-color: var(--color-accent);
+  color: white;
+}
+.form-actions .save-button:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.form-actions .cancel-button {
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.form-actions .cancel-button:hover {
+  background-color: var(--color-border);
+}
+
+/* Config Prompt */
+.config-prompt {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--color-accent-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--color-accent);
+}
+
+.config-prompt p {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-text);
+}
+
+#configure-now-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background-color: var(--color-accent);
+  color: white;
+  transition: background-color 0.2s;
+}
+
+#configure-now-button:hover {
+  background-color: var(--color-accent-hover);
+}
+
+.email-item-placeholder {
+  padding: 2rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  border: none;
+  cursor: default;
+}
+
+.email-item-placeholder:hover {
+    background-color: transparent;
+}
+
+.email-item-placeholder.error {
+  color: var(--color-error);
+}
+
+/* ─── Email Content View ─────────────────────────────────── */
+
+.email-header {
+  max-width: 720px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.email-subject {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.email-meta-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.email-meta-details strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.email-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* HTML / テキスト 切替ボタン */
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.view-toggle-btn {
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.view-toggle-btn.active {
+  background-color: var(--color-accent-subtle);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.view-toggle-btn:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* メール本文（テキスト／HTML由来共通） */
+.email-text-body {
+  font-family: var(--font-family);
+  word-break: break-word;
+  line-height: 1.75;
+  font-size: 0.9375rem;
+  color: var(--color-text);
+  margin: 0;
+  padding: 0;
+  max-width: 720px;
+}
+
+/* <pre> によるプレーンテキスト表示時のみ空白を保持 */
+pre.email-text-body {
+  white-space: pre-wrap;
+}
+
+.email-text-body a {  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.email-text-body a:hover {
+  color: var(--color-accent-hover);
+}
+
+/* HTML メール iframe — アプリの縦幅に収まるよう CSS で固定 */
+.email-html-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border: none;
+  border-radius: 4px;
+  display: block;
+}

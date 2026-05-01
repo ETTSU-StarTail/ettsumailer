@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0",
+  "productName": "ettsumailer",
+  "version": "0.1.0",
+  "identifier": "com.ettsu.mailer",
+  "build": {
+    "beforeDevCommand": "bun install && bun run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "bun install && bun run build",
+    "frontendDist": "../dist"
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all"
+  },
+  "app": {
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "ettsumailer",
+        "width": 1024,
+        "height": 768
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  }
+}
