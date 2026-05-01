@@ -41,13 +41,18 @@ body {
   flex-direction: column;
   padding: 1rem;
   box-sizing: border-box;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
+  overflow: hidden;
 }
 
 .email-list-view {
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  overflow-y: hidden;
+  overflow: hidden;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
 }
 
 .email-content-view {
@@ -56,6 +61,8 @@ body {
   padding: 2rem;
   overflow: hidden;
   box-sizing: border-box;
+  /* リサイズ時に隣カラムへの再レイアウト波及を防ぐ */
+  contain: layout style;
 }
 
 .email-content-placeholder {
@@ -172,6 +179,9 @@ body {
   border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   transition: background-color 0.2s;
+  /* 画面外のアイテムの描画をスキップ（全件表示時のスクロールコスト削減） */
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3.75rem;
 }
 
 .email-item:hover {
